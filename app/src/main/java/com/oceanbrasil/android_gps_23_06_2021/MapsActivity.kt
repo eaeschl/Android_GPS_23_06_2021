@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -53,6 +54,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun iniciarLocalizacao() {
+        // Checar se temos a permissão FINE ou COARSE concedida
+        // Se não tiver, entrará no if
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -61,6 +64,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
+            // Assim que entrar no if, solicita as permissões
             ActivityCompat.requestPermissions(
                 this, arrayOf(
                     Manifest.permission.ACCESS_FINE_LOCATION,
@@ -68,6 +72,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 ), LOCATION_PERMISSION_REQUEST_CODE
             )
 
+            // Encerra execução do método
             return
         }
 
@@ -76,5 +81,42 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val locationProvider = LocationManager.GPS_PROVIDER
 
         val ultimaLocalizacao = locationManager.getLastKnownLocation(locationProvider)
+
+        Toast.makeText(
+            this,
+            "Lat: ${ultimaLocalizacao?.latitude} Lng: ${ultimaLocalizacao?.longitude}",
+            Toast.LENGTH_LONG
+        ).show()
+
+        ultimaLocalizacao?.let {
+            val latLng = LatLng(it.latitude, it.longitude)
+
+            mMap.addMarker(
+                MarkerOptions()
+                    .position(latLng)
+                    .title("Minha posição")
+            )
+
+            mMap.animateCamera(
+                CameraUpdateFactory
+                    .newLatLngZoom(latLng, 18f)
+            )
+        }
+
+        // Exemplo do Toast:
+//        Toast.makeText(this, "Texto que irá aparecer", Toast.LENGTH_LONG).show()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE
+            && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            iniciarLocalizacao()
+        }
     }
 }
