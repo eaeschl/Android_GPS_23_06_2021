@@ -3,6 +3,7 @@ package com.oceanbrasil.android_gps_23_06_2021
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.LocationManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -13,6 +14,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 
@@ -101,6 +103,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 CameraUpdateFactory
                     .newLatLngZoom(latLng, 18f)
             )
+
+            mMap.addCircle(
+                CircleOptions()
+                    .center(latLng)
+                    .radius(50.0)
+                    .strokeColor(Color.RED)
+                    .fillColor(Color.BLUE)
+            )
+
+            // Outras funções para desenhar no mapa (consulte documentação)
+//            mMap.addPolygon()
+//            mMap.addPolyline()
+//            mMap.addMarker()
+//            mMap.addTileOverlay()
+//            mMap.addGroundOverlay()
         }
 
         // Exemplo do Toast:
@@ -115,7 +132,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE
-            && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            && grantResults[0] == PackageManager.PERMISSION_GRANTED
+        ) {
             iniciarLocalizacao()
         }
     }
