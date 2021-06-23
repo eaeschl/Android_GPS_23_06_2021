@@ -1,7 +1,12 @@
 package com.oceanbrasil.android_gps_23_06_2021
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.LocationManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.core.app.ActivityCompat
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -41,5 +46,31 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val saoPaulo = LatLng(-23.59284516630147, -46.67206405699086)
         mMap.addMarker(MarkerOptions().position(saoPaulo).title("Marca em São Paulo"))
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(saoPaulo, 18f))
+
+        iniciarLocalizacao()
+    }
+
+    private fun iniciarLocalizacao() {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(this, arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ))
+
+            return
+        }
+
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+        val locationProvider = LocationManager.GPS_PROVIDER
+
+        val ultimaLocalizacao = locationManager.getLastKnownLocation(locationProvider)
     }
 }
