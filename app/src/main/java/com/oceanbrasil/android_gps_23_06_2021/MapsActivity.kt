@@ -1,14 +1,24 @@
 package com.oceanbrasil.android_gps_23_06_2021
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.graphics.Color
+import android.location.LocationManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
+import androidx.core.app.ActivityCompat
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+
+const val LOCATION_PERMISSION_REQUEST_CODE = 1
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -19,7 +29,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         setContentView(R.layout.activity_maps)
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
-                .findFragmentById(R.id.map) as SupportMapFragment
+            .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
     }
 
@@ -35,9 +45,96 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
+        mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
+
         // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        val saoPaulo = LatLng(-23.59284516630147, -46.67206405699086)
+        mMap.addMarker(MarkerOptions().position(saoPaulo).title("Marca em São Paulo"))
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(saoPaulo, 18f))
+
+        iniciarLocalizacao()
+    }
+
+    private fun iniciarLocalizacao() {
+        // Checar se temos a permissão FINE ou COARSE concedida
+        // Se não tiver, entrará no if
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // Assim que entrar no if, solicita as permissões
+            ActivityCompat.requestPermissions(
+                this, arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ), LOCATION_PERMISSION_REQUEST_CODE
+            )
+
+            // Encerra execução do método
+            return
+        }
+
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+        val locationProvider = LocationManager.GPS_PROVIDER
+
+        val ultimaLocalizacao = locationManager.getLastKnownLocation(locationProvider)
+
+        Toast.makeText(
+            this,
+            "Lat: ${ultimaLocalizacao?.latitude} Lng: ${ultimaLocalizacao?.longitude}",
+            Toast.LENGTH_LONG
+        ).show()
+
+        ultimaLocalizacao?.let {
+            val latLng = LatLng(it.latitude, it.longitude)
+
+            mMap.addMarker(
+                MarkerOptions()
+                    .position(latLng)
+                    .title("Minha posição")
+            )
+
+            mMap.animateCamera(
+                CameraUpdateFactory
+                    .newLatLngZoom(latLng, 18f)
+            )
+
+            mMap.addCircle(
+                CircleOptions()
+                    .center(latLng)
+                    .radius(50.0)
+                    .strokeColor(Color.RED)
+                    .fillColor(Color.BLUE)
+            )
+
+            // Outras funções para desenhar no mapa (consulte documentação)
+//            mMap.addPolygon()
+//            mMap.addPolyline()
+//            mMap.addMarker()
+//            mMap.addTileOverlay()
+//            mMap.addGroundOverlay()
+        }
+
+        // Exemplo do Toast:
+//        Toast.makeText(this, "Texto que irá aparecer", Toast.LENGTH_LONG).show()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE
+            && grantResults[0] == PackageManager.PERMISSION_GRANTED
+        ) {
+            iniciarLocalizacao()
+        }
     }
 }
